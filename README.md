@@ -1,1 +1,0 @@
-# Formative-2-Multimodal-Data-Preprocessing-Assignment-G19
