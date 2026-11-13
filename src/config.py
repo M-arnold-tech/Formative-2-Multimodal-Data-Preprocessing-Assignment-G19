@@ -4,6 +4,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 
 MERGED_CSV = ROOT / "data" / "merged_dataset.csv"
+AUDIO_DIR = ROOT / "audio_data"
 AUDIO_CSV = ROOT / "audio_features.csv"
 
 FACE_SCRIPT_DIR = ROOT / "image_processing" / "scripts"   # where face_auth.py lives

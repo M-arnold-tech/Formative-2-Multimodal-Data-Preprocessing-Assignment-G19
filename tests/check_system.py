@@ -11,13 +11,15 @@ sys.path.insert(0, str(ROOT))
 warnings.filterwarnings("ignore")
 
 import cv2
+import librosa
 import pandas as pd
+import soundfile as sf
 from skimage import data as sample_images
 
 from src.cli import main as cli
 from src.config import AUDIO_CSV, FACE_MODEL, MERGED_CSV, PRODUCT_MODEL, VOICE_MODEL
 from src.recommendation.product_model import recommend
-from src.voice_verification.voice_model import FEATURE_COLUMNS, clean_name, extract_features, verify_voice
+from src.voice_verification.voice_model import FEATURE_COLUMNS, clean_name, verify_voice
 
 IMAGE_CSV = ROOT / "image_processing" / "data" / "image_features.csv"
 LINDA_VOICE = ROOT / "audio_data" / "Linda_yes_approve.wav"
@@ -57,9 +59,12 @@ check("audio features: 4 members x 2 phrases", audio["member"].nunique() == 4 an
 check("audio and face models use the same member names", set(audio["member"]) == set(images["member_id"]))
 
 # 2. Voice model
-row = audio[(audio["filename"] == LINDA_VOICE.name) & (audio["augmentation"] == "none")][FEATURE_COLUMNS].iloc[0]
-new = pd.Series(extract_features(LINDA_VOICE))[FEATURE_COLUMNS]
-check("voice features from a wav file match audio_features.csv", ((new - row).abs() / (row.abs() + 1e-9)).max() < 1e-3)
+# The same recording saved at other sample rates, as a phone would do, must still be recognised
+samples, original_rate = librosa.load(LINDA_VOICE, sr=None)
+for rate in (44100, 48000):
+    resampled_file = Path(tempfile.gettempdir()) / f"linda_{rate}.wav"
+    sf.write(resampled_file, librosa.resample(samples, orig_sr=original_rate, target_sr=rate), rate)
+    check(f"voice check works on the same recording at {rate} Hz", verify_voice(resampled_file, "linda")[0])
 check("voice check accepts the right person", verify_voice(LINDA_VOICE, "linda")[0])
 check("voice check rejects the wrong person", not verify_voice(LINDA_VOICE, "arnold")[0])
 
