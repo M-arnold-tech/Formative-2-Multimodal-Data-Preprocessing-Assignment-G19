@@ -87,7 +87,7 @@ The notebooks are opened with `jupyter notebook`. The image notebook was written
 
 ## Demonstration
 
-Face photos are private and are **not** in this repository. Put your own photos in `data/demo_photos/`
+Face photos are not in this repository. Put your own photos in `data/demo_photos/`
 (this folder is ignored by Git), then run:
 
 ```bash
@@ -136,4 +136,4 @@ with 516 features. Audio features (`audio_features.csv`) have 32 rows (4 members
 
 ## Team
 
-Contribution sheet: PASTE_CONTRIBUTION_SHEET_LINK
+Contribution sheet: 
