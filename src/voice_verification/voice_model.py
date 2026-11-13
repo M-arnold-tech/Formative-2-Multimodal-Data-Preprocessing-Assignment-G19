@@ -6,6 +6,7 @@ import json
 
 import joblib
 import librosa
+import numpy as np
 import pandas as pd
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
@@ -13,7 +14,10 @@ from sklearn.metrics import accuracy_score, confusion_matrix, f1_score, log_loss
 from sklearn.pipeline import make_pipeline
 from sklearn.preprocessing import StandardScaler
 
-from src.config import AUDIO_CSV, VOICE_MODEL
+from src.config import AUDIO_DIR, VOICE_MODEL
+
+# Every recording is resampled to this rate, so the phone or microphone used does not change the features
+SAMPLE_RATE = 22050
 
 # The audio files call this person "Keane", the face model calls them "gaju"
 NAME_FIXES = {"keane": "gaju"}
@@ -30,11 +34,10 @@ def clean_name(name):
     return NAME_FIXES.get(name, name)
 
 
-def extract_features(audio_path):
-    """Turn one recording into the 30 numbers the model expects (same method as the notebook)."""
-    y, sr = librosa.load(audio_path, sr=None)
-    mfccs = librosa.feature.mfcc(y=y, sr=sr, n_mfcc=13)
-    rolloff = librosa.feature.spectral_rolloff(y=y, sr=sr)
+def features_from_signal(y):
+    """Turn audio samples into the 30 numbers the model uses (same method as the notebook)."""
+    mfccs = librosa.feature.mfcc(y=y, sr=SAMPLE_RATE, n_mfcc=13)
+    rolloff = librosa.feature.spectral_rolloff(y=y, sr=SAMPLE_RATE)
     rms = librosa.feature.rms(y=y)
 
     features = {}
@@ -44,6 +47,44 @@ def extract_features(audio_path):
     features.update(rolloff_mean=rolloff.mean(), rolloff_std=rolloff.std(),
                     rms_energy_mean=rms.mean(), rms_energy_std=rms.std())
     return features
+
+
+def extract_features(audio_path):
+    y, _ = librosa.load(audio_path, sr=SAMPLE_RATE)
+    return features_from_signal(y)
+
+
+def augmented_versions(y):
+    """The recording plus the three augmentations used in the audio notebook."""
+    noise = np.random.default_rng(0).standard_normal(len(y))
+    return {
+        "none": y,
+        "pitch_shift": librosa.effects.pitch_shift(y=y, sr=SAMPLE_RATE, n_steps=2),
+        "time_stretch": librosa.effects.time_stretch(y=y, rate=1.15),
+        "added_noise": y + 0.005 * noise,
+    }
+
+
+def split_file_name(file_name):
+    """'Linda_yes_approve' -> ('Linda', 'yes_approve');  'Yes approve - Keane' -> ('Keane', 'yes_approve')."""
+    if " - " in file_name:
+        phrase, member = file_name.rsplit(" - ", 1)
+    else:
+        member, phrase = file_name.split("_", 1)
+    return member, phrase.strip().lower().replace(" ", "_")
+
+
+def build_training_table():
+    """One row per version of each recording (8 recordings x 4 versions)."""
+    recordings = sorted(AUDIO_DIR.glob("*.wav")) + sorted((AUDIO_DIR / "converted").glob("*.wav"))
+    rows = []
+    for path in recordings:
+        member, phrase = split_file_name(path.stem)
+        y, _ = librosa.load(path, sr=SAMPLE_RATE)
+        for augmentation, signal in augmented_versions(y).items():
+            rows.append({"member": clean_name(member), "phrase": phrase, "augmentation": augmentation,
+                         **features_from_signal(signal)})
+    return pd.DataFrame(rows)
 
 
 def make_models():
@@ -87,8 +128,7 @@ def stranger_confidence(name, df):
 
 
 def train():
-    df = pd.read_csv(AUDIO_CSV)
-    df["member"] = df["member_name"].apply(clean_name)
+    df = build_training_table()
     classes = sorted(df["member"].unique())
 
     results = {name: evaluate(name, df, classes) for name in make_models()}

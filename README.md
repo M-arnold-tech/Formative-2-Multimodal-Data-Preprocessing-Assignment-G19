@@ -85,6 +85,8 @@ python -m src.cli.main <face_photo> <voice_recording>
 The notebooks are opened with `jupyter notebook`. The image notebook was written for Google Colab
 (it reads the photos from Google Drive), so run it there.
 
+Use `.wav` files for voice recordings. Other formats (such as `.m4a`) may need `ffmpeg` installed.
+
 ## Demonstration
 
 Face photos are not in this repository. Put your own photos in `data/demo_photos/`
@@ -111,16 +113,18 @@ All numbers come from the code in this repository.
 | Model | How it was tested | Accuracy | F1 | Log loss |
 |---|---|---|---|---|
 | Face (Logistic Regression) | train on two expressions, test on the third (12 photos) | 0.917 | 0.889 | 0.117 |
-| Voice (Logistic Regression) | train on one phrase, test on the other (8 clips) | 0.875 | 0.867 | 0.411 |
+| Voice (Logistic Regression) | train on one phrase, test on the other (8 clips) | 1.000 | 1.000 | 0.186 |
 | Product (Random Forest) | 5 test runs, a customer's rows never split between train and test | 0.185 | 0.167 | 1.735 |
 | Product baseline (always the most common category) | same as above | 0.183 | 0.100 | 1.642 |
 
 - **Face:** from `image_processing/MLP_Formative2_Imageprocessing.ipynb`. The saved model also rejects unknown faces
   with a confidence threshold of 0.67 and a distance limit of 32.1, tuned on only 2 outsider photos.
-- **Voice:** one Arnold clip was heard as Crispin. When one speaker is hidden from the model, its confidence on that unknown
-  voice (0.44 to 0.98) overlaps with its confidence on real members, so it **cannot reliably reject a stranger's voice**.
-  It checks whether the voice is the same person as the face. The recordings also come from different devices and
-  sample rates, so the model may partly recognise the recording setup.
+- **Voice:** all 8 held-out clips were identified correctly, but 8 clips is a very small test, so treat 1.000 as
+  encouraging and not proven. The model rejects a team member's voice used under another member's name, but it
+  **cannot reliably reject a stranger's voice**: when one speaker is hidden from the model, its confidence on that
+  unknown voice (0.46 to 0.92) overlaps with its confidence on real members (0.64 to 0.97). Every recording is
+  resampled to 22.05 kHz before the features are computed, so phone recordings at 44.1 or 48 kHz work. In one test,
+  a recording limited to 16 kHz (nothing above 8 kHz) was still misidentified.
 - **Product:** the model is no better than guessing. With 5 categories, chance is 0.20, and all three models score about
   0.18 to 0.19. The EDA already showed that the categories overlap strongly. Random Forest was chosen because it
   has the lowest log loss of the two real models, but its log loss is still worse than the baseline's.
@@ -133,6 +137,10 @@ Full numbers and confusion matrices are in `models/*/metrics.json`.
 transactions. The target is `product_category` (Sports 35, Electronics 34, Clothing 28, Groceries 28, Books 25).
 Image features (`image_processing/data/image_features.csv`) have 60 rows (4 members x 3 expressions x 5 versions)
 with 516 features. Audio features (`audio_features.csv`) have 32 rows (4 members x 2 phrases x 4 versions) with 30 features.
+
+The voice model does not read `audio_features.csv`. It computes the same 30 features (with the notebook's 3 augmentations)
+from the recordings in `audio_data/` at a fixed 22.05 kHz, because the CSV was extracted at each file's own sample rate.
+The audio files and notebook call one member "Keane" and the face model calls the same person "gaju"; the code maps `keane` to `gaju`.
 
 ## Team
 
