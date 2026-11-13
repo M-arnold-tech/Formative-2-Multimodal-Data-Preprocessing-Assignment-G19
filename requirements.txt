@@ -2,7 +2,7 @@
 numpy>=1.26,<2.3
 pandas>=2.2,<3
 scipy>=1.11,<1.15
-scikit-learn==1.6.1        # must match the version that saved image_processing/models/face_model.pkl
+scikit-learn==1.6.1        #
 scikit-image>=0.24
 opencv-python-headless>=4.9
 joblib>=1.4
@@ -10,4 +10,4 @@ librosa>=0.10,<1.0
 soundfile>=0.12
 matplotlib>=3.8
 moviepy>=1.0
-jupyter                    # only needed to open the notebooks
+jupyter                    
