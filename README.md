@@ -26,7 +26,8 @@ Team members are not customers in the dataset, so for the demo each member is gi
 data/                              customer CSVs, merged_dataset.csv (+ readable version)
 scripts/data_preprocessing.py      builds merged_dataset.csv from the two raw CSVs
 notebooks/eda_data_merge.ipynb     Part 1: cleaning, merge, feature engineering, EDA
-image_processing/                  Part 2: image notebook (Colab), image_features.csv, face model, face_auth.py
+image_processing/                  Part 2: image notebook (Colab), image_features.csv, face model, face_auth.py,
+                                   train_face_model.py
 Sound_Data_Collection_and_processing.ipynb   Part 3: audio notebook
 audio_data/, audio_features.csv    recordings and their extracted features
 src/recommendation/product_model.py          product model: train, evaluate, recommend
@@ -62,6 +63,12 @@ Train and evaluate the two models built for the app (this also saves them in `mo
 ```bash
 python -m src.recommendation.product_model
 python -m src.voice_verification.voice_model
+```
+
+Retrain the face model from `image_processing/data/image_features.csv` (keeps the saved confidence threshold and distance limit):
+
+```bash
+python image_processing/scripts/train_face_model.py
 ```
 
 Check that everything works:
