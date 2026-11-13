@@ -1,0 +1,13 @@
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+.DS_Store
+venv/
+.venv/
+.checks_passed
+
+# Private photos stay on your own computer
+data/demo_photos/
+data/images/
+data/unauthorized/
+image_processing/notebook_output/

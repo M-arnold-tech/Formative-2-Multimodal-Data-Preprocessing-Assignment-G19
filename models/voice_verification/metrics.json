@@ -1,0 +1,85 @@
+{
+  "selected_model": "Logistic Regression",
+  "members": [
+    "arnold",
+    "crispin",
+    "gaju",
+    "linda"
+  ],
+  "results": {
+    "Logistic Regression": {
+      "n_test_clips": 8,
+      "accuracy": 0.875,
+      "f1": 0.8666666666666667,
+      "log_loss": 0.4114688159932497,
+      "confusion_matrix": [
+        [
+          1,
+          1,
+          0,
+          0
+        ],
+        [
+          0,
+          2,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          2,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          2
+        ]
+      ]
+    },
+    "Random Forest": {
+      "n_test_clips": 8,
+      "accuracy": 0.875,
+      "f1": 0.8666666666666667,
+      "log_loss": 0.7503869861816674,
+      "confusion_matrix": [
+        [
+          1,
+          1,
+          0,
+          0
+        ],
+        [
+          0,
+          2,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          2,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          2
+        ]
+      ]
+    }
+  },
+  "unknown_voice_confidence": [
+    0.58,
+    0.79,
+    0.73,
+    0.75,
+    0.98,
+    0.91,
+    0.44,
+    0.72
+  ]
+}
